@@ -10,7 +10,7 @@ Designed as a thin, predictable base layer that downstream containers can `FROM`
 
 **Good fits:**
 - **CI fixtures** that need a real `abinit` binary to test input generation, output parsing, or workflow logic
-- **Reproducibility artifacts** for published calculations — image tags are immutable, so `ghcr.io/material-codes/abinit-base:10.6.5` ships exactly the ABINIT/LibXC binaries that were current at release time
+- **Reproducibility artifacts** for published calculations — image tags are immutable, so `ghcr.io/material-codes/abinit-base:10.6.7` ships exactly the ABINIT/LibXC binaries that were current at release time
 - **Education / classroom use** where students need a working ABINIT + LibXC stack without battling autotools and upstream-vs-Debian version skew
 - **Workflow runners** (e.g. material/core's `abinitrunner`) that want a known-good binary as a base layer
 - **Small-to-medium calculations** that fit on a single node and don't need MPI parallelism
@@ -48,13 +48,13 @@ The build is two-stage: an `abinit-builder` stage with the full compile toolchai
 ## Pull
 
 ```sh
-docker pull ghcr.io/material-codes/abinit-base:10.6.5
+docker pull ghcr.io/material-codes/abinit-base:10.6.7
 ```
 
 | Tag pattern | Meaning |
 |---|---|
-| `<version>` (e.g. `10.6.5`) | Pinned to a specific ABINIT release. Immutable. |
-| `<version>-N` (e.g. `10.6.5-1`) | Patch revision — ABINIT version unchanged, but a build dependency (LibXC, Debian base) bumped. |
+| `<version>` (e.g. `10.6.7`) | Pinned to a specific ABINIT release. Immutable. |
+| `<version>-N` (e.g. `10.6.7-1`) | Patch revision — ABINIT version unchanged, but a build dependency (LibXC, Debian base) bumped. |
 | `latest` | Tracks the most recent release tag. Moves over time. |
 
 For reproducibility, **always pin a specific version** in production references; reserve `latest` for exploration.
@@ -62,7 +62,7 @@ For reproducibility, **always pin a specific version** in production references;
 ## Use as a base
 
 ```dockerfile
-FROM ghcr.io/material-codes/abinit-base:10.6.5
+FROM ghcr.io/material-codes/abinit-base:10.6.7
 
 # Add the runtime libraries ABINIT and LibXC link against.
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -93,7 +93,7 @@ RUN curl -fsSL https://www.pseudo-dojo.org/pseudos/nc-sr-04_pbe_stringent_psp8.t
 ## Build locally
 
 ```sh
-docker build --build-arg ABINIT_VERSION=10.6.5 -t abinit-base:10.6.5 .
+docker build --build-arg ABINIT_VERSION=10.6.7 -t abinit-base:10.6.7 .
 ```
 
 The build is **slow** (~14 minutes on a fast amd64 runner): LibXC's autoreconf + configure + compile takes ~3 minutes, ABINIT's configure + compile takes ~10 minutes. There's no parallelism between the two — LibXC must finish first because ABINIT's configure tests `--with-libxc`.
@@ -101,7 +101,7 @@ The build is **slow** (~14 minutes on a fast amd64 runner): LibXC's autoreconf +
 On Apple Silicon (M1/M2/M3), the build runs under qemu emulation when targeting `linux/amd64` — expect noticeably longer compile times (~10× slower) than on a native amd64 host. For local iteration on Apple Silicon, build natively:
 
 ```sh
-docker build --platform linux/arm64 --build-arg ABINIT_VERSION=10.6.5 -t abinit-base:10.6.5-arm64 .
+docker build --platform linux/arm64 --build-arg ABINIT_VERSION=10.6.7 -t abinit-base:10.6.7-arm64 .
 ```
 
 The published GHCR image is `linux/amd64` only.
@@ -119,13 +119,13 @@ The trigger is `tags: ['v*']`, so unrelated tags would also fire the workflow �
 LibXC's version is pinned in the Dockerfile as `ARG LIBXC_VERSION` (single source of truth — the workflow does not pass it as a build-arg). To bump:
 
 1. Edit `ARG LIBXC_VERSION` default in `Dockerfile` (both stages must match).
-2. Cut a **patch revision tag** of the current ABINIT version, e.g. `v10.6.5-1`. The published image will be `ghcr.io/material-codes/abinit-base:10.6.5-1`. The original `10.6.5` image stays in place (tag immutability), and `latest` moves to the patch.
+2. Cut a **patch revision tag** of the current ABINIT version, e.g. `v10.6.7-1`. The published image will be `ghcr.io/material-codes/abinit-base:10.6.7-1`. The original `10.6.7` image stays in place (tag immutability), and `latest` moves to the patch.
 
 This separation lets you bump LibXC independently of the headline ABINIT version while keeping the QE-version semantics of the primary tag unambiguous.
 
 ## Versioning policy
 
-Image tags follow ABINIT's upstream release versioning (e.g. ABINIT release `10.6.5` → image tag `10.6.5`). Patch revisions (LibXC bump, Debian base bump, build-arg default change) get a `-N` suffix.
+Image tags follow ABINIT's upstream release versioning (e.g. ABINIT release `10.6.7` → image tag `10.6.7`). Patch revisions (LibXC bump, Debian base bump, build-arg default change) get a `-N` suffix.
 
 If a future release switches to MPI-enabled or GPU-enabled builds, that should be a parallel image namespace (`abinit-base-mpi`, `abinit-base-cuda`) rather than overloading this tag stream.
 
