@@ -104,6 +104,8 @@ jobs:
             "" \
             "Review the upstream changelog before releasing — a human should eyeball ABINIT/LibXC/toolchain changes before publishing a new base image." \
             "" \
+            "Publishing the image is only half of it. Nothing consumes the new tag until \`material/core\` moves its pins: \`ABINIT_VERSION\` in \`.gitlab-ci.yml\` (the source of truth, it feeds the runner build-args), the \`ARG\` default in \`Dockerfile.abinitrunner\`, and the ABINIT smoke version in the \`Makefile\` — the last two govern local builds and must not drift from the first. Adopt only after a live G0W0 run: the input-variable set and the stdout parser in core were derived by iterating against one ABINIT branch, so a minor-version move can leave the runner reading output it no longer understands." \
+            "" \
             "cc @${MAINTAINER}" \
             "" \
             "_Opened automatically by the upstream-watch workflow._")"
