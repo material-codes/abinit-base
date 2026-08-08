@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # LibXC — Debian's libxc is 5.2.3, ABINIT 10.x needs 6.x.
 # Version pin is the source of truth; bump here to bump LibXC, then cut a
-# new patch tag (e.g. v10.6.7-1).
+# new patch tag (e.g. v10.8.3-1).
 # Fortran interface disabled; ABINIT links against the C interface.
 ARG LIBXC_VERSION=6.2.2
 WORKDIR /src
@@ -35,7 +35,7 @@ RUN wget -q -O libxc.tar.gz \
  && cd .. && rm -rf libxc.tar.gz libxc-${LIBXC_VERSION}
 
 # ABINIT from forge release tarball (GitHub mirror lacks Makefile.am).
-ARG ABINIT_VERSION=10.6.7
+ARG ABINIT_VERSION=10.8.3
 RUN wget -q -O abinit.tar.gz \
         "https://forge.abinit.org/abinit-${ABINIT_VERSION}.tar.gz" \
  && tar -xzf abinit.tar.gz \
@@ -54,7 +54,7 @@ RUN wget -q -O abinit.tar.gz \
 # Final stage: ship /opt/libxc and /opt/abinit on debian:bookworm-slim.
 # Downstream images FROM this and add their own runtime libs + entrypoint.
 FROM debian:bookworm-slim
-ARG ABINIT_VERSION=10.6.7
+ARG ABINIT_VERSION=10.8.3
 ARG LIBXC_VERSION=6.2.2
 COPY --from=abinit-builder /opt/libxc /opt/libxc
 COPY --from=abinit-builder /opt/abinit /opt/abinit
